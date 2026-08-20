@@ -29,8 +29,8 @@ func (s *Service) Render(_ context.Context, id string, v map[string]string) (str
 }
 
 func (s *Service) RenderWithFallback(ctx context.Context, id string, vars, defaults map[string]string) (string, error) {
-	if err := ctx.Err(); err != nil {
-		return "", err
+	if ctx == nil {
+		return "", fmt.Errorf("template context required")
 	}
 	s.mu.RLock()
 	t, ok := s.data[id]

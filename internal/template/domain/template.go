@@ -27,7 +27,10 @@ func (t Template) Render(vars map[string]string) (string, error) {
 }
 
 func (t Template) RenderWithDefaults(vars, defaults map[string]string) (string, error) {
-	merged := make(map[string]string, len(defaults)+len(vars))
+	merged := vars
+	if merged == nil {
+		return t.Render(vars)
+	}
 	for key, value := range defaults {
 		merged[key] = value
 	}
