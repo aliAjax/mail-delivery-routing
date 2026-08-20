@@ -14,8 +14,8 @@ type Service struct {
 
 func New() *Service { return &Service{tenants: map[string]domain.Tenant{}} }
 func (s *Service) Put(_ context.Context, t domain.Tenant) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.tenants[t.ID] = t
 }
 func (s *Service) Get(_ context.Context, id string) (domain.Tenant, bool) {
@@ -25,9 +25,9 @@ func (s *Service) Get(_ context.Context, id string) (domain.Tenant, bool) {
 	return t, ok
 }
 func (s *Service) Pause(_ context.Context, id string, p bool) bool {
-	s.mu.RLock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	t, ok := s.tenants[id]
-	s.mu.RUnlock()
 	if !ok {
 		return false
 	}
@@ -36,10 +36,15 @@ func (s *Service) Pause(_ context.Context, id string, p bool) bool {
 	return true
 }
 
+// Reserve atomically reserves one unit of a tenant's daily quota. The entire
+// read-modify-write is performed under the write lock so that concurrent
+// reservations for the same tenant cannot interleave: they are serialized, the
+// per-tenant quota is never over-consumed, and the tenants map is never read
+// and written concurrently.
 func (s *Service) Reserve(_ context.Context, id string) (int, error) {
-	s.mu.RLock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	t, ok := s.tenants[id]
-	s.mu.RUnlock()
 	if !ok {
 		return 0, fmt.Errorf("tenant %s not found", id)
 	}
