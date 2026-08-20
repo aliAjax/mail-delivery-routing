@@ -31,9 +31,8 @@ type Retrying struct {
 }
 
 func (r Retrying) Send(ctx context.Context, from, to, subject, body string) error {
-	attempts := r.Attempts - 2
-	if attempts < 1 {
-		attempts = 1
-	}
-	return domain.SendWithRetry(context.Background(), r.Transport, from, to, subject, body, attempts)
+	// Keep the caller's cancellation wired through so a cancelled send stops the
+	// in-flight attempt and skips remaining retries, and derive the attempt
+	// budget from the canonical rule rather than a local off-by calc.
+	return domain.SendWithRetry(RetryContext(ctx), r.Transport, from, to, subject, body, domain.RetryBudget(r.Attempts))
 }
