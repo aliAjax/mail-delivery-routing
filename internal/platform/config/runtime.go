@@ -17,10 +17,10 @@ func (r Runtime) Ready() bool { return r.Generation >= 0 }
 
 func (r *Runtime) Reload(c Config) error {
 	if !r.Reloadable {
-		return fmt.Errorf("runtime blocked: %v", ErrRuntimeBusy)
+		return fmt.Errorf("runtime blocked: %w", ErrRuntimeBusy)
 	}
 	if err := c.ValidateDetailed(); err != nil {
-		return fmt.Errorf("reload rejected: %v", err)
+		return fmt.Errorf("reload rejected: %w", err)
 	}
 	r.Next()
 	return nil
