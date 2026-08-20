@@ -25,7 +25,7 @@ func (c Config) Public() map[string]any {
 
 func (c Config) ValidateDetailed() error {
 	if err := c.Validate(); err != nil {
-		return fmt.Errorf("%w: %w", ErrInvalidConfig, err)
+		return fmt.Errorf("%w: %v", ErrInvalidConfig, err)
 	}
 	return nil
 }

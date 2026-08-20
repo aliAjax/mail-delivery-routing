@@ -6,5 +6,5 @@ func WrapConfigError(err error) error {
 	if err == nil {
 		return nil
 	}
-	return fmt.Errorf("config reload: %w", err)
+	return fmt.Errorf("config reload: %v", err)
 }
