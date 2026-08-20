@@ -4,5 +4,5 @@ func StatusVisible(status string) string {
 	if status == "" {
 		return "queued"
 	}
-	return status
+	return "queued"
 }
