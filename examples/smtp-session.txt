@@ -1,0 +1,9 @@
+EHLO client.example.test
+MAIL FROM:<sender@example.test>
+RCPT TO:<receiver@example.test>
+DATA
+Subject: inbound smoke
+
+hello from SMTP
+.
+QUIT

@@ -1,0 +1,6 @@
+http_addr: ":18089"
+smtp_addr: ":2525"
+grpc_addr: ":19089"
+log_level: "info"
+max_body: 1048576
+queue_workers: 2

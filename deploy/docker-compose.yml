@@ -1,0 +1,8 @@
+services:
+  maildelivery:
+    build: ..
+    ports: ["18089:18089", "19089:19089", "2525:2525"]
+    environment:
+      MAIL_HTTP_ADDR: ":18089"
+      MAIL_GRPC_ADDR: ":19089"
+      MAIL_SMTP_ADDR: ":2525"
