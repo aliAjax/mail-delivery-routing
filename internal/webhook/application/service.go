@@ -51,7 +51,9 @@ func (s *Service) DeliverChecked(ctx context.Context, d domain.Delivery, payload
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
 		class := domain.StatusClass(resp.StatusCode)
-		return fmt.Errorf("webhook rejected (%s): %v", class, domain.HTTPStatusError{Code: resp.StatusCode})
+		// Wrap the typed status error with %w so the retryer can recover it
+		// via errors.As and inspect Temporary() to decide whether to retry.
+		return fmt.Errorf("webhook rejected (%s): %w", class, domain.HTTPStatusError{Code: resp.StatusCode})
 	}
 	return nil
 }
