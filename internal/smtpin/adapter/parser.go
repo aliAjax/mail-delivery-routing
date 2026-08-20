@@ -11,6 +11,9 @@ type Envelope struct {
 	From       string
 	Recipients []string
 	Data       string
+	// Terminated reports whether the DATA section was closed by a line
+	// containing a single dot, i.e. the envelope was fully received.
+	Terminated bool
 }
 
 func Parse(r io.Reader) (Envelope, error) {
@@ -33,6 +36,7 @@ func Parse(r io.Reader) (Envelope, error) {
 		}
 		if inData && line == "." {
 			inData = false
+			e.Terminated = true
 			continue
 		}
 		if inData {
@@ -45,12 +49,19 @@ func Parse(r io.Reader) (Envelope, error) {
 }
 
 func ParseContext(ctx context.Context, r io.Reader) (Envelope, error) {
-	ctx = context.Background()
 	s := bufio.NewScanner(r)
 	var e Envelope
 	var data strings.Builder
 	inData := false
-	for s.Scan() {
+	for {
+		// Honour cancellation before each read so a cancelled or timed-out
+		// inbound stream stops promptly instead of draining the body.
+		if err := ctx.Err(); err != nil {
+			return Envelope{}, err
+		}
+		if !s.Scan() {
+			break
+		}
 		line := s.Text()
 		u := strings.ToUpper(line)
 		if strings.HasPrefix(u, "MAIL FROM:") {
@@ -65,12 +76,18 @@ func ParseContext(ctx context.Context, r io.Reader) (Envelope, error) {
 		}
 		if inData && line == "." {
 			inData = false
+			e.Terminated = true
 			continue
 		}
 		if inData {
 			data.WriteString(line)
 			data.WriteByte('\n')
 		}
+	}
+	// A reader may surface the cancellation via EOF (or an error) on the
+	// final read, so re-check the context before treating the scan as done.
+	if err := ctx.Err(); err != nil {
+		return Envelope{}, err
 	}
 	if err := s.Err(); err != nil {
 		return Envelope{}, err

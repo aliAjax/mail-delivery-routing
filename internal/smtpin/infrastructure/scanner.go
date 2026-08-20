@@ -26,11 +26,11 @@ func (e scanError) Error() string { return string(e) }
 var ErrMalware = scanError("malware content rejected")
 
 func ScanEnvelope(ctx context.Context, r io.Reader, scanner Scanner) (adapter.Envelope, error) {
-	envelope, err := adapter.ParseContext(context.Background(), r)
+	envelope, err := adapter.ParseContext(ctx, r)
 	if err != nil {
 		return adapter.Envelope{}, err
 	}
-	if err := scanner.Scan(context.Background(), envelope.Data); err != nil {
+	if err := scanner.Scan(ctx, envelope.Data); err != nil {
 		return adapter.Envelope{}, err
 	}
 	return envelope, nil
