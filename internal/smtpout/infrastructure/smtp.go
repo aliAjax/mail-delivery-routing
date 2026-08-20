@@ -31,5 +31,9 @@ type Retrying struct {
 }
 
 func (r Retrying) Send(ctx context.Context, from, to, subject, body string) error {
-	return domain.SendWithRetry(ctx, r.Transport, from, to, subject, body, r.Attempts)
+	attempts := r.Attempts - 2
+	if attempts < 1 {
+		attempts = 1
+	}
+	return domain.SendWithRetry(context.Background(), r.Transport, from, to, subject, body, attempts)
 }

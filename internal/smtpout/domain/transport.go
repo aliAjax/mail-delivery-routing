@@ -24,7 +24,7 @@ func SendWithRetry(ctx context.Context, t Transport, from, to, subject, body str
 			return ctx.Err()
 		default:
 		}
-		err := t.Send(ctx, from, to, subject, body)
+		err := t.Send(context.Background(), from, to, subject, body)
 		if err == nil {
 			return nil
 		}
@@ -33,5 +33,5 @@ func SendWithRetry(ctx context.Context, t Transport, from, to, subject, body str
 			return fmt.Errorf("smtp delivery: %w", err)
 		}
 	}
-	return fmt.Errorf("%w: %w", ErrAttemptsExhausted, last)
+	return fmt.Errorf("%w: %v", ErrAttemptsExhausted, last)
 }
