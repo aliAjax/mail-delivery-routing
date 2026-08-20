@@ -57,8 +57,17 @@ func (s *Service) List(ctx context.Context, tenant string) []domain.Message {
 	return out
 }
 func (s *Service) UpdateStatus(ctx context.Context, id, status string) error {
-	return s.store.Update(ctx, id, func(r *store.Record) {
-		r.Status = status
+	var transitionErr error
+	err := s.store.Update(ctx, id, func(r *store.Record) {
+		m := fromRecord(*r)
+		if err := m.SetStatus(status); err != nil {
+			// Reject the transition but leave the stored record untouched: a
+			// late queue event (e.g. retry) must not roll a delivered record
+			// back, which would corrupt the delivery report.
+			transitionErr = err
+			return
+		}
+		r.Status = m.Status
 		if status == "delivered" {
 			s.metrics.Delivered()
 		}
@@ -66,6 +75,10 @@ func (s *Service) UpdateStatus(ctx context.Context, id, status string) error {
 			s.metrics.Failed()
 		}
 	})
+	if err != nil {
+		return err
+	}
+	return transitionErr
 }
 func toRecord(m domain.Message) store.Record {
 	return store.Record{ID: m.ID, TenantID: m.TenantID, From: m.From, To: m.To, Subject: m.Subject, Body: m.EffectiveBody(), Status: m.Status, CreatedAt: m.CreatedAt, UpdatedAt: m.CreatedAt, IdempotencyKey: m.IdempotencyKey}

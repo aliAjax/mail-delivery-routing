@@ -39,11 +39,8 @@ func (m *Message) SetStatus(status string) error {
 	if m == nil {
 		return fmt.Errorf("%w: nil message", ErrInvalid)
 	}
-	if m.IsTerminal() && status == "retry" {
-		return fmt.Errorf("%w: terminal message", ErrInvalid)
-	}
-	if m.Status == "retry" && status == "running" {
-		return ErrInvalid
+	if !CanTransition(m.Status, status) {
+		return fmt.Errorf("%w: %s -> %s", ErrInvalidTransition, m.Status, status)
 	}
 	return ApplyTransition(m, status)
 }
