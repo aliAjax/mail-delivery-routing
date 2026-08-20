@@ -20,7 +20,7 @@ type HTTPStatusError struct {
 func (e HTTPStatusError) Error() string { return fmt.Sprintf("webhook returned status %d", e.Code) }
 
 func (e HTTPStatusError) Temporary() bool {
-	return e.Retryable || e.Code == 408 || e.Code == 429 || e.Code >= 500
+	return e.Retryable
 }
 
 func (d *Delivery) Retry(now time.Time) {
