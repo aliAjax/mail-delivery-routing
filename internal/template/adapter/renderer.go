@@ -30,10 +30,9 @@ func ReadAndClose(read func() (io.ReadCloser, error)) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer closer.Close()
 	data, err := io.ReadAll(closer)
 	if err != nil {
-		return "", fmt.Errorf("read template: %w", err)
+		return "", fmt.Errorf("read template: %v", err)
 	}
 	return string(data), nil
 }

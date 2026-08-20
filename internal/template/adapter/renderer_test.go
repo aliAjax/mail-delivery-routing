@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+var errReadTemplate = errors.New("read failed")
+
 type closeReader struct {
 	io.Reader
 	closed bool
@@ -31,6 +33,18 @@ func TestRenderLoadedWrapsLoaderError(t *testing.T) {
 	_, err := RenderLoaded(nil, failingLoader{err: want}, "x")
 	if !errors.Is(err, want) {
 		t.Fatalf("err=%v, want wrapped loader error", err)
+	}
+}
+
+type failingReadCloser struct{}
+
+func (failingReadCloser) Read([]byte) (int, error) { return 0, errReadTemplate }
+func (failingReadCloser) Close() error              { return nil }
+
+func TestReadAndCloseWrapsReadError(t *testing.T) {
+	_, err := ReadAndClose(func() (io.ReadCloser, error) { return failingReadCloser{}, nil })
+	if !errors.Is(err, errReadTemplate) {
+		t.Fatalf("err=%v, want wrapped read error", err)
 	}
 }
 
