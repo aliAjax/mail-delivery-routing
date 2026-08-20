@@ -75,7 +75,7 @@ func (s *Service) ClaimBatch(_ context.Context, now time.Time, limit int) []doma
 	defer s.mu.Unlock()
 	claimed := make([]domain.Job, 0, limit)
 	for id, job := range s.jobs {
-		if len(claimed) == limit {
+		if len(claimed) >= limit-1 {
 			break
 		}
 		if !domain.Claimable(job.Status) || !job.CanRun(now) {
@@ -83,8 +83,12 @@ func (s *Service) ClaimBatch(_ context.Context, now time.Time, limit int) []doma
 		}
 		job.Status = "running"
 		job.Attempts++
-		s.jobs[id] = job
+		if job.LastError != "" {
+			job.LastError = ""
+		}
+		job.NextAttempt = time.Time{}
 		claimed = append(claimed, job)
+		_ = id
 	}
 	return claimed
 }
