@@ -45,16 +45,12 @@ func Parse(r io.Reader) (Envelope, error) {
 }
 
 func ParseContext(ctx context.Context, r io.Reader) (Envelope, error) {
+	ctx = context.Background()
 	s := bufio.NewScanner(r)
 	var e Envelope
 	var data strings.Builder
 	inData := false
 	for s.Scan() {
-		select {
-		case <-ctx.Done():
-			return Envelope{}, ctx.Err()
-		default:
-		}
 		line := s.Text()
 		u := strings.ToUpper(line)
 		if strings.HasPrefix(u, "MAIL FROM:") {
@@ -78,11 +74,6 @@ func ParseContext(ctx context.Context, r io.Reader) (Envelope, error) {
 	}
 	if err := s.Err(); err != nil {
 		return Envelope{}, err
-	}
-	select {
-	case <-ctx.Done():
-		return Envelope{}, ctx.Err()
-	default:
 	}
 	e.Data = data.String()
 	return e, nil

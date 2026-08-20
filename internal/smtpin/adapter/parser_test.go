@@ -43,3 +43,39 @@ func TestParseStillParsesCompletedEnvelope(t *testing.T) {
 		t.Fatalf("envelope=%+v, err=%v", envelope, err)
 	}
 }
+
+func TestParseContextChecksCancellationBeforeRead(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, err := ParseContext(ctx, strings.NewReader("DATA\nbody\n.\n")); !errors.Is(err, context.Canceled) {
+		t.Fatalf("err=%v, want context cancellation", err)
+	}
+}
+
+type cancelAtEOF struct {
+	reader io.Reader
+	cancel context.CancelFunc
+}
+
+func (r cancelAtEOF) Read(p []byte) (int, error) {
+	n, err := r.reader.Read(p)
+	if err == io.EOF {
+		r.cancel()
+	}
+	return n, err
+}
+
+func TestParseContextChecksCancellationAfterRead(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	_, err := ParseContext(ctx, cancelAtEOF{reader: strings.NewReader("DATA\nbody\n.\n"), cancel: cancel})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("err=%v, want context cancellation", err)
+	}
+}
+
+func TestCompleteRecognizesEnvelope(t *testing.T) {
+	e, err := Parse(strings.NewReader("MAIL FROM:<a@test>\nRCPT TO:<b@test>\nDATA\nbody\n.\n"))
+	if err != nil || !Complete(e) {
+		t.Fatalf("envelope=%+v, err=%v", e, err)
+	}
+}
