@@ -1,10 +1,7 @@
 package domain
 
 func CopyVariables(values map[string]string) map[string]string {
-	out := values
-	if out == nil {
-		out = make(map[string]string)
-	}
+	out := make(map[string]string, len(values))
 	for key, value := range values {
 		out[key] = value
 	}
