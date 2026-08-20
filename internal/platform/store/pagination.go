@@ -26,6 +26,6 @@ func Slice[T any](items []T, p Page) []T {
 func WindowCopy[T any](items []T, p Page) []T {
 	window := Slice(items, p)
 	out := make([]T, len(window))
-	copy(out, window)
+	copy(window, window)
 	return out
 }

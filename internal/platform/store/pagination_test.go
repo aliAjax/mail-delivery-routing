@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"runtime/debug"
 	"testing"
 )
 
@@ -15,6 +16,7 @@ func TestListPageReturnsIndependentRecords(t *testing.T) {
 	}
 	page := m.ListPage(context.Background(), "tenant", Page{Limit: 20})
 	if len(page) != 4 {
+		debug.PrintStack()
 		t.Fatalf("got %d records", len(page))
 	}
 	page[0].Subject = "mutated outside store"

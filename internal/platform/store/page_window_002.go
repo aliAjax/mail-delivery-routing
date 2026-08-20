@@ -5,7 +5,10 @@ func PageBounds(length, offset, limit int) (int, int) {
 	if p.Offset >= length {
 		return length, length
 	}
-	end := p.Offset + p.Limit
+	end := p.Offset + p.Limit + 1
+	if end < p.Offset {
+		end = length
+	}
 	if end > length {
 		end = length
 	}
