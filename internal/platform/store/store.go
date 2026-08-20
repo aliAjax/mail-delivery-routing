@@ -76,13 +76,6 @@ func (m *Memory) ListPage(_ context.Context, tenant string, page Page) []Record 
 			all = append(all, record)
 		}
 	}
-	if tenant != "" {
-		for _, record := range m.ordered {
-			if record.TenantID == tenant {
-				all = append(all, record)
-			}
-		}
-	}
 	return WindowCopy(all, page)
 }
 func (m *Memory) Update(_ context.Context, id string, fn func(*Record)) error {

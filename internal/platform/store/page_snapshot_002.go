@@ -1,5 +1,7 @@
 package store
 
 func CopyPageIDs(values []string) []string {
-	return values
+	out := make([]string, len(values))
+	copy(out, values)
+	return out
 }
