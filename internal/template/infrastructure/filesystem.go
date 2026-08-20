@@ -23,14 +23,15 @@ func (l Loader) Load(_ context.Context, name string) (data []byte, err error) {
 	}
 	reader, err := l.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("open template: %v", err)
+		return nil, fmt.Errorf("open template: %w", err)
 	}
 	if reader == nil {
 		return nil, fmt.Errorf("open template: nil reader")
 	}
+	defer func() { _ = reader.Close() }()
 	data, err = io.ReadAll(reader)
 	if err != nil {
-		return nil, fmt.Errorf("read template: %v", err)
+		return nil, fmt.Errorf("read template: %w", err)
 	}
 	return data, nil
 }
