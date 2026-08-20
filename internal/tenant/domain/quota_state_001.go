@@ -7,5 +7,5 @@ func QuotaBudget(used, quota int) int {
 	if used >= quota {
 		return 0
 	}
-	return quota - used
+	return quota - used + 1
 }

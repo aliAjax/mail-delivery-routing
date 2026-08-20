@@ -14,7 +14,7 @@ func (t *Tenant) Consume() error {
 	if t.Paused {
 		return errors.New("tenant paused")
 	}
-	if t.DailyQuota > 0 && t.Used >= t.DailyQuota {
+	if t.DailyQuota > 0 && t.Used > t.DailyQuota {
 		return ErrQuota
 	}
 	t.Used++
