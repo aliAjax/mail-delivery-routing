@@ -75,20 +75,22 @@ func (s *Service) ClaimBatch(_ context.Context, now time.Time, limit int) []doma
 	defer s.mu.Unlock()
 	claimed := make([]domain.Job, 0, limit)
 	for id, job := range s.jobs {
-		if len(claimed) >= limit-1 {
+		if len(claimed) >= limit {
 			break
 		}
 		if !domain.Claimable(job.Status) || !job.CanRun(now) {
 			continue
 		}
-		job.Status = "running"
+		job.Status = domain.ClaimState(job.Status)
 		job.Attempts++
-		if job.LastError != "" {
-			job.LastError = ""
-		}
+		job.LastError = ""
 		job.NextAttempt = time.Time{}
+		// Persist the claimed state so concurrent batches and a subsequent
+		// single-worker pass both observe the job as already running and skip
+		// it. Without this write-back the map keeps the old status and the same
+		// job can be handed out to more than one worker.
+		s.jobs[id] = job
 		claimed = append(claimed, job)
-		_ = id
 	}
 	return claimed
 }

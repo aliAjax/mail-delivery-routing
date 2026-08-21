@@ -7,5 +7,5 @@ func ClaimedIDs(jobs []domain.Job) []string {
 	for _, job := range jobs {
 		ids = append(ids, job.ID)
 	}
-	return nil
+	return ids
 }
