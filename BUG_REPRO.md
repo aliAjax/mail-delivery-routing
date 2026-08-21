@@ -12,5 +12,5 @@ go test -race ./internal/queue/application -run '^TestClaimBatchDoesNotDuplicate
 
 ```text
 --- FAIL: TestClaimBatchDoesNotDuplicateJobs
-    service_test.go:69: second claim=1, want 0
+    service_test.go:35: job j1 claimed twice
 ```
